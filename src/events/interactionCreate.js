@@ -610,7 +610,7 @@ module.exports = {
 
                     // --- COMMUNITY MONITOR LOG ---
                     try {
-                        const payoutChannelId = process.env.PAYOUT_LOG_CHANNEL_ID || '1499095140671684738';
+                        const payoutChannelId = process.env.PAYOUT_LOG_CHANNEL_ID || '1518214414254211202';
                         const payoutChannel = await interaction.client.channels.fetch(payoutChannelId).catch(() => null);
                         
                         if (payoutChannel) {
