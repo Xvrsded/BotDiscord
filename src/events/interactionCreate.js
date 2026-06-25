@@ -608,6 +608,55 @@ module.exports = {
                         replyMessage += `⏳ Kamu masih belum memenuhi syarat durasi server (butuh 14 hari). Sisa waktu: **${14 - diffDays} hari** lagi.`;
                     }
 
+                    // --- COMMUNITY MONITOR LOG ---
+                    try {
+                        const payoutChannelId = process.env.PAYOUT_LOG_CHANNEL_ID || '1499095140671684738';
+                        const payoutChannel = await interaction.client.channels.fetch(payoutChannelId).catch(() => null);
+                        
+                        if (payoutChannel) {
+                            const { EmbedBuilder } = require('discord.js');
+                            const playerInfo = await noblox.getPlayerInfo(verification.id).catch(() => null);
+                            
+                            if (playerInfo) {
+                                const accCreatedDate = new Date(playerInfo.joinDate);
+                                const accAgeDays = playerInfo.age || 0;
+                                const accAgeYears = Math.floor(accAgeDays / 365);
+                                const accAgeMonths = Math.floor((accAgeDays % 365) / 30);
+                                const accAgeRemainingDays = (accAgeDays % 365) % 30;
+                                const accAgeString = `${accAgeDays} days • ${accAgeYears > 0 ? accAgeYears + ' yr ' : ''}${accAgeMonths} mo ${accAgeRemainingDays} d`;
+                                
+                                const eligibleDate = new Date();
+                                eligibleDate.setDate(eligibleDate.getDate() + 14);
+                                
+                                const monitorEmbed = new EmbedBuilder()
+                                    .setTitle('Community Monitor • WinterStore')
+                                    .setDescription(`${playerInfo.displayName} ( @${playerInfo.username} )\n✅ Member Joined the Community`)
+                                    .setThumbnail(`https://www.roblox.com/headshot-thumbnail/image?userId=${verification.id}&width=420&height=420&format=png`)
+                                    .addFields(
+                                        { name: '🆔 Username', value: `@${playerInfo.username}`, inline: true },
+                                        { name: '👤 User ID', value: `${verification.id}`, inline: true },
+                                        { name: '🏷️ Display Name', value: `${playerInfo.displayName}`, inline: true },
+                                        { name: '👥 Followers', value: `${playerInfo.followerCount || 0}`, inline: true },
+                                        { name: '➡️ Following', value: `${playerInfo.followingCount || 0}`, inline: true },
+                                        { name: '🤝 Connections', value: `${playerInfo.friendCount || 0}`, inline: true },
+                                        { name: '📅 Account Created', value: `<t:${Math.floor(accCreatedDate.getTime() / 1000)}:f>`, inline: true },
+                                        { name: '⏳ Account Age', value: accAgeString, inline: true },
+                                        { name: '🔞 Age Group', value: 'Unknown', inline: true },
+                                        { name: '🛡️ Account Status', value: playerInfo.isBanned ? '❌ Banned' : '✅ Active', inline: true },
+                                        { name: '📥 Join Community Date', value: `<t:${Math.floor(Date.now() / 1000)}:f>`, inline: true },
+                                        { name: '✅ Eligible Date (+14 Days)', value: `<t:${Math.floor(eligibleDate.getTime() / 1000)}:f>`, inline: true }
+                                    )
+                                    .setFooter({ text: 'WinterStore • Join Event • Multi-Source Verified', iconURL: interaction.guild.iconURL() })
+                                    .setColor('#2b2d31');
+                                    
+                                await payoutChannel.send({ content: `<@${interaction.user.id}> telah bergabung dan diverifikasi!`, embeds: [monitorEmbed] });
+                            }
+                        }
+                    } catch (logErr) {
+                        console.error('Failed to send community monitor log:', logErr);
+                    }
+                    // -----------------------------
+
                     await interaction.editReply(replyMessage);
                 } catch (error) {
                     console.error('Verify error:', error);
